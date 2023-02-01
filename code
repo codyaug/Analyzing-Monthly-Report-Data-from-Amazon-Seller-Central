@@ -1,0 +1,50 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from sklearn.tree import DecisionTreeRegressor
+
+# Load the monthly report data into a Pandas DataFrame
+df = pd.read_csv("monthly_report.csv")
+
+# Count the frequency of each ASIN
+asin_counts = df['ASIN'].value_counts()
+
+# Plot the frequency of each ASIN
+asin_counts.plot(kind='bar', title='ASIN Frequency')
+plt.xlabel('ASIN')
+plt.ylabel('Frequency')
+plt.show()
+
+# Group the data by keyword and calculate the frequency of each keyword
+keyword_counts = df.groupby('Keyword')['Keyword'].count()
+
+# Plot the trend of each keyword
+keyword_counts.plot(title='Keyword Trend')
+plt.xlabel('Keyword')
+plt.ylabel('Frequency')
+plt.show()
+
+# Train an ARIMA model on the keyword data to forecast future trends
+arima_model = sm.tsa.ARIMA(keyword_counts, order=(1, 0, 1)).fit()
+forecast = arima_model.forecast(steps=12)  # forecast for the next 12 months
+
+# Plot the forecasted trend of each keyword
+forecast.plot(title='Forecasted Keyword Trend')
+plt.xlabel('Month')
+plt.ylabel('Frequency')
+plt.show()
+
+# Train a decision tree on the ASIN data to predict future rankings
+x = df.drop(['ASIN', 'Rank'], axis=1)
+y = df['Rank']
+regressor = DecisionTreeRegressor().fit(x, y)
+
+# Predict the future rankings of the ASINs
+asin_rank_predictions = regressor.predict(x)
+
+# Plot the predicted rankings of each ASIN
+plt.scatter(df['ASIN'], asin_rank_predictions)
+plt.title('Predicted ASIN Rankings')
+plt.xlabel('ASIN')
+plt.ylabel('Rank')
+plt.show()
